@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  web:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+    depends_on:
+      - db
+    links:
+      - db
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+    volumes:
+      - ./app:/app/app
+      - ./public:/app/public
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./next.config.ts:/app/next.config.ts
+    working_dir: /app
+    command: ["./start.sh"]
+
+  db:
+    image: mysql:8.0
+    env_file:
+      - db/local.env
+    ports:
+      - 52000:3306
+    command: --init-file /docker-entrypoint-initdb.d/init.sql
+    volumes:
+      - domestic-services:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./data:/app/data
+
+volumes:
+  domestic-services:
+    driver: local
